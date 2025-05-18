@@ -1,4 +1,5 @@
 <!-- src/components/SubscribeForm.vue -->
+
 <template>
   <div class="form-wrapper">
     <form @submit.prevent="submitForm" class="subscribe-form">
@@ -30,30 +31,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 
-export default defineComponent({
-  name: 'SubscribeForm',
+export default {
   setup() {
     const email = ref('')
     const city = ref('')
     const forecastType = ref('daily')
     const message = ref('')
 
+    const loading = ref(false)
+
     const submitForm = async () => {
+      message.value = ''
       try {
-        await axios.post('/api/subscribe', {
-          email: email.value,
-          city: city.value,
-          forecast_type: forecastType.value,
-        })
-        message.value = 'Subscription successful! Check your email.'
+        const response = await fetch(
+          'https://weather-api-production-4236.up.railway.app/api/subscribe',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: email.value,
+              city: city.value,
+              frequency: forecastType.value,
+            }),
+          },
+        )
+
+        if (response.ok) {
+          message.value = 'Subscription successful! Check your email.'
+          email.value = ''
+          city.value = ''
+          forecastType.value = 'daily'
+        } else if (response.status === 400) {
+          message.value = 'Invalid input. Please check the form.'
+        } else if (response.status === 409) {
+          message.value = 'This email is already subscribed.'
+        } else {
+          message.value = `Error ${response.status}: Subscription failed.`
+        }
       } catch (err) {
-        message.value = 'Subscription failed. Please try again.'
+        console.error('Fetch error:', err)
+        message.value = 'Network error. Please try again later.'
       }
     }
-
     return {
       email,
       city,
@@ -62,7 +86,7 @@ export default defineComponent({
       submitForm,
     }
   },
-})
+}
 </script>
 
 <style scoped>
