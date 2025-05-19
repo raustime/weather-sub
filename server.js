@@ -51,11 +51,13 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
-// Всі інші роутинги ведуть на index.html
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Потім catch-all роут для SPA (Vue Router у режимі history)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
-app.use(express.static(path.join(__dirname, 'dist')));
+
 // Старт сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
