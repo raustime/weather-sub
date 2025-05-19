@@ -51,6 +51,10 @@ app.post('/api/subscribe', async (req, res) => {
   }
 });
 
+app.get('/health', (req, res) => {
+  res.send('OK');
+});
+
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Потім catch-all роут для SPA (Vue Router у режимі history)
