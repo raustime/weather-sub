@@ -1,9 +1,12 @@
 <template>
-  <main class="min-h-screen flex items-center justify-center bg-blue-50">
+  <div>
     <SubscribeForm />
-  </main>
+    <WeatherRequestForm />
+  </div>
 </template>
 
 <script setup lang="ts">
 import SubscribeForm from './components/SubscribeForm.vue'
+import WeatherRequestForm from './components/WeatherRequestForm.vue'
+
 </script>
