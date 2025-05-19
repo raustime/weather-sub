@@ -1,4 +1,4 @@
-<!-- src/components/SubscribeForm.vue with improved error handling -->
+<!-- src/components/SubscribeForm.vue with local API endpoint -->
 
 <template>
   <div class="form-wrapper">
@@ -28,7 +28,6 @@
       </button>
 
       <p v-if="message" :class="['message', messageType]">{{ message }}</p>
-      <p v-if="debugInfo" class="debug-info">{{ debugInfo }}</p>
     </form>
   </div>
 </template>
@@ -44,40 +43,35 @@ export default {
     const message = ref('')
     const messageType = ref('success')
     const loading = ref(false)
-    const debugInfo = ref('')
 
     const submitForm = async () => {
       message.value = ''
-      debugInfo.value = ''
       loading.value = true
-      
+
       try {
         const requestData = {
           email: email.value,
           city: city.value,
           frequency: forecastType.value,
         }
-        
-        debugInfo.value = `Sending request to: https://weather-api-production-4236.up.railway.app/api/subscribe`
-        
-        const response = await fetch(
-          'https://weather-api-production-4236.up.railway.app/api/subscribe',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-          },
-        )
 
-        // Try to parse response body for better debugging
-        let responseBody = null
-        try {
-          responseBody = await response.text()
-          debugInfo.value += `\nResponse status: ${response.status}\nResponse body: ${responseBody}`
-        } catch (e) {
-          debugInfo.value += `\nCouldn't parse response body: ${e}`
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        })
+
+        let responseData = {}
+        const contentType = response.headers.get('Content-Type') || ''
+
+        if (contentType.includes('application/json')) {
+          try {
+            responseData = await response.json()
+          } catch (e) {
+            console.warn('Failed to parse JSON:', e)
+          }
         }
 
         if (response.ok) {
@@ -100,12 +94,11 @@ export default {
         console.error('Fetch error:', err)
         messageType.value = 'error'
         message.value = 'Network error. Please try again later.'
-        debugInfo.value += `\nNetwork error: ${err}`
       } finally {
         loading.value = false
       }
     }
-    
+
     return {
       email,
       city,
@@ -113,7 +106,6 @@ export default {
       message,
       messageType,
       loading,
-      debugInfo,
       submitForm,
     }
   },
@@ -192,24 +184,5 @@ export default {
 
 .message.error {
   color: red;
-}
-
-.debug-info {
-  margin-top: 1rem;
-  font-size: 0.8rem;
-  color: #666;
-  font-family: monospace;
-  white-space: pre-wrap;
-  background: #f8f8f8;
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-}
-
-/* Hide debug info in production */
-@media not all and (min-resolution:.001dpcm) {
-  .debug-info {
-    display: none;
-  }
 }
 </style>
