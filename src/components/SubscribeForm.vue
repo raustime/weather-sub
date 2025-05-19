@@ -1,4 +1,4 @@
-<!-- src/components/SubscribeForm.vue -->
+<!-- src/components/SubscribeForm.vue with improved error handling -->
 
 <template>
   <div class="form-wrapper">
@@ -23,16 +23,18 @@
         </select>
       </label>
 
-      <button type="submit">Subscribe</button>
+      <button type="submit" :disabled="loading">
+        {{ loading ? 'Submitting...' : 'Subscribe' }}
+      </button>
 
-      <p v-if="message" class="message">{{ message }}</p>
+      <p v-if="message" :class="['message', messageType]">{{ message }}</p>
+      <p v-if="debugInfo" class="debug-info">{{ debugInfo }}</p>
     </form>
   </div>
 </template>
 
 <script lang="ts">
 import { ref } from 'vue'
-import axios from 'axios'
 
 export default {
   setup() {
@@ -40,12 +42,24 @@ export default {
     const city = ref('')
     const forecastType = ref('daily')
     const message = ref('')
-
+    const messageType = ref('success')
     const loading = ref(false)
+    const debugInfo = ref('')
 
     const submitForm = async () => {
       message.value = ''
+      debugInfo.value = ''
+      loading.value = true
+      
       try {
+        const requestData = {
+          email: email.value,
+          city: city.value,
+          frequency: forecastType.value,
+        }
+        
+        debugInfo.value = `Sending request to: https://weather-api-production-4236.up.railway.app/api/subscribe`
+        
         const response = await fetch(
           'https://weather-api-production-4236.up.railway.app/api/subscribe',
           {
@@ -54,36 +68,53 @@ export default {
               'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({
-              email: email.value,
-              city: city.value,
-              frequency: forecastType.value,
-            }),
+            body: JSON.stringify(requestData),
           },
         )
 
+        // Try to parse response body for better debugging
+        let responseBody = null
+        try {
+          responseBody = await response.text()
+          debugInfo.value += `\nResponse status: ${response.status}\nResponse body: ${responseBody}`
+        } catch (e) {
+          debugInfo.value += `\nCouldn't parse response body: ${e}`
+        }
+
         if (response.ok) {
+          messageType.value = 'success'
           message.value = 'Subscription successful! Check your email.'
           email.value = ''
           city.value = ''
           forecastType.value = 'daily'
         } else if (response.status === 400) {
+          messageType.value = 'error'
           message.value = 'Invalid input. Please check the form.'
         } else if (response.status === 409) {
+          messageType.value = 'error'
           message.value = 'This email is already subscribed.'
         } else {
+          messageType.value = 'error'
           message.value = `Error ${response.status}: Subscription failed.`
         }
       } catch (err) {
         console.error('Fetch error:', err)
+        messageType.value = 'error'
         message.value = 'Network error. Please try again later.'
+        debugInfo.value += `\nNetwork error: ${err}`
+      } finally {
+        loading.value = false
       }
     }
+    
     return {
       email,
       city,
       forecastType,
       message,
+      messageType,
+      loading,
+      debugInfo,
       submitForm,
     }
   },
@@ -142,13 +173,44 @@ export default {
   transition: background-color 0.3s;
 }
 
-.subscribe-form button:hover {
+.subscribe-form button:hover:not(:disabled) {
   background-color: #2980b9;
+}
+
+.subscribe-form button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
 }
 
 .message {
   margin-top: 1rem;
   text-align: center;
+}
+
+.message.success {
   color: green;
+}
+
+.message.error {
+  color: red;
+}
+
+.debug-info {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #666;
+  font-family: monospace;
+  white-space: pre-wrap;
+  background: #f8f8f8;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Hide debug info in production */
+@media not all and (min-resolution:.001dpcm) {
+  .debug-info {
+    display: none;
+  }
 }
 </style>
