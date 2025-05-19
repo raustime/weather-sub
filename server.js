@@ -16,8 +16,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Статичні файли з Vue білду
-app.use(express.static(path.join(__dirname, 'dist')));
+// GET /api/weather?city=Kyiv
+app.get('/api/weather', async (req, res) => {
+  const { city } = req.query;
+
+  if (!city) {
+    return res.status(400).json({ error: 'Missing "city" query parameter' });
+  }
+
+  try {
+    console.log(`Forwarding weather request for city: ${city}`);
+
+    const response = await axios.get(
+      'https://weather-api-production-4236.up.railway.app/api/weather',
+      {
+        params: { city },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('Received weather data from backend:', response.status);
+    res.status(response.status).json(response.data);
+
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else if (error.request) {
+      res.status(502).json({ error: 'Bad Gateway - No response from backend service' });
+    } else {
+      res.status(500).json({ error: 'Internal Server Error - Could not process request' });
+    }
+  }
+});
 
 // API-проксі для запитів на бекенд
 app.post('/api/subscribe', async (req, res) => {
