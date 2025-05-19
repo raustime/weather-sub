@@ -1,6 +1,6 @@
 <template>
   <div class="form-wrapper">
-    <form @submit.prevent="fetchWeather" class="weather-form">
+    <form @submit.prevent="fetchWeather" class="subscribe-form">
       <h2>Get Current Weather</h2>
 
       <label>
@@ -81,10 +81,88 @@ export default {
 </script>
 
 <style scoped>
+.form-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f0f4f8;
+}
+
+.subscribe-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.subscribe-form h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.subscribe-form label {
+  display: block;
+  margin-bottom: 1rem;
+  color: #444;
+}
+
+.subscribe-form input,
+.subscribe-form select {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.subscribe-form button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+.subscribe-form button:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.subscribe-form button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.message.success {
+  color: green;
+}
+
+.message.error {
+  color: red;
+}
+
 .weather-result {
   margin-top: 1rem;
-  padding: 0.5rem;
+  padding: 0.8rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  background: #f9f9f9;
+}
+
+.weather-result h3 {
+  margin-bottom: 0.6rem;
+  color: #333;
 }
 </style>
