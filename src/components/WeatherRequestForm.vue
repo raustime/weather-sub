@@ -16,8 +16,9 @@
 
       <div v-if="weatherData" class="weather-result">
         <h3>Weather in {{ weatherData.city }}</h3>
-        <p>Temperature: {{ weatherData.temperature }}°C</p>
-        <p>Condition: {{ weatherData.condition }}</p>
+        <p><strong>Temperature:</strong> {{ weatherData.temperature }}°C</p>
+        <p><strong>Humidity:</strong> {{ weatherData.humidity }}%</p>
+        <p><strong>Condition:</strong> {{weatherData.description }}</p>
       </div>
     </form>
   </div>
